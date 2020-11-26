@@ -1,0 +1,27 @@
+---------------------------------------
+Trabalho 2 - Algoritmos de Busca
+Vence 30 de novembro de 2020 às 23:59
+Instruções
+---------------------------------------
+
+=> Informações gerais:
+======================
+  1. Implementação dos algoritmos de busca em largura e busca em profundidade.
+  2. Executar cada algoritmo com as instâncias em anexo
+  3. Resolver o problema do juiz online: Chefe
+  4. Entregar:
+    a) códigos das implementações (c ou c++);
+    b) relatório explicando sucintamente e o que julgar mais importante o desenvolvimento, mostrando os resultados e comparando os dois algoritmos. (resumo, introdução, desenvolvimento, testes e conclusão - usar o template da SBC para o relatório, máximo 6 páginas)
+    c) Entregar o código e o print da tela com a resolução do problema no juiz online. No print deve aparecer a informação do seu login.
+  5. Obs.1: O passo a passo da execução com as instâncias "G-6-6.txt" e "G-8-12.txt" devem estar no relatório, a execução com a instância "G-512-976.txt" deve estar em um arquivo separado.
+  6. Obs.2: Os códigos devem ser submetidos através do runcode, existe um trabalho para submissão de cada código em específico.
+
+
+=> Informação das instâncias
+============================
+As instâncias fornecidas são compostas por:
+  1. Número de vértices
+  2. Número de arestas
+  3. Vértice de início da busca
+  4. Lista de arestas
+  5. Obs.: as instâncias representam um grafo não orientado e não ponderado.

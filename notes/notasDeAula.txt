@@ -1,0 +1,66 @@
+Material já Visto:
+------------------
+= Árvores binárias de busca balanceadas:
+    - AVL
+    - Rubro-Negra
+
+= Árvore de busca:
+    - Definições, representação
+    - Árvore B e suas variações
+
+Próximos Temas:
+------------------
+= Introdução à teoria dos grafos:
+
+= Técnicas de projetos de algoritmos:
+    - Backtracking
+    - Divisão e conquista
+
+Horários de Aula:
+------------------
+= Segunda: 08h40 - 11h10 (Síncrona)
+= Quinta: 07h00 - 09h30 (Assíncrona)
+
+Horários de Atendimento:
+------------------
+= Quarta: 09h00 - 10h30
+= Quarta: 16h00 - 17h00
+
+==============================================
+Grafos:
+
+Teoria da matemática que pretende abstrar a relação de um objeto com os demais em determinado conjunto.
+
+ = Representação Matemática
+    - Vértices:
+        - Uma das entidades representadas em grafos;
+
+        Ex.:
+            G (V,E) {
+                V = [1,2,3,4]
+                E = [(1,2), (1,3), (2,3), (3,4)]
+            }
+
+ = Representação Geométrica
+    - Pontos interligados
+
+Observações:
+    Grafos Simples: Sem loops.
+    Grafos não-simples: Com loops.
+    Grafo orientado: quando as arestas têm um sentido (com setinhas), também chamado de dígrafo.
+
+    Grafo direcionados possuem graus de entrada e saída:
+        - Entrada: quantas chegadas tem o vértice
+        - Saída: quantas saídas tem o vértice
+
+    Vértices Adjacentes: vértices vizinhos que se incidem
+    Arestas Adjacentes: quando uma aresta incide em outros vértices
+
+Professora, qual a diferença entre subgrafo induzido e subgrafo próprio?
+
+      A  B  C  D  E
+A = | 0  0  0  1  1
+B = | 0  0  0  1  1
+C = | 0  0  0  0  0
+D = | 1  1  0  0  0
+E = | 1  1  0  0  0

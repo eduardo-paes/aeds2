@@ -1,0 +1,8 @@
+INSTÂNCIAS
+
+#nos #arestas 
+	0 (não orientado)
+	1 (orientado)
+	2 (não orientado e ponderado)
+	3 (orientado e ponderado)
+lista de arestas

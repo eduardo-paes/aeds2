@@ -1,0 +1,6 @@
+G1 - normal
+G2 - loop
+G3 - loop e aresta paralela
+G4 - no isolado
+G5 - regular
+G6 - completo e regular
