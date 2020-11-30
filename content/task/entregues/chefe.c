@@ -69,25 +69,6 @@ void AdicionaAresta(sGrafo grafo, int src, int dest) {
     grafo->lista[src].cab = novoNo;             // Faz cab de src apontar para o novo nó (agora cabeça da lista)
 } 
 
-// Função para impressão de uma lista de adjacências
-void ImprimeGrafo(sGrafo grafo) { 
-  for (int i = 1; i <= grafo->num; ++i) { 
-    listAdjNo listaVertice = grafo->lista[i].cab; 
-    printf("Adjacencias do vertice [%d] ", i);
-
-    if (!listaVertice->dest) {
-        // Para vértices sem arestas
-        printf("-> vazio\n"); 
-    } else {
-        while (listaVertice->dest) { 
-            printf("-> %d", listaVertice->dest); 
-            listaVertice = listaVertice->prox; 
-        }
-        puts(""); 
-    }
-  } 
-}
-
 // Cria um grafo de tamanho (numVertices)
 auxDFS CriaListaDFS() { 
     auxDFS tmp = (auxDFS) calloc(25, sizeof(auxDFS));
@@ -268,18 +249,5 @@ int main() {
             TrataTroca(grafo, valA, valB);
         }
     }
-    // while(scanf(" %c", &instrucao) != EOF) {
-    //     if (numInstrucoes) {
-    //         if (instrucao == 'P') {
-    //             scanf(" %d", &valA);
-    //             TrataPergunta(grafo, listaDFS, valA);
-    //         }
-    //         if (instrucao == 'T') {
-    //             scanf(" %d %d", &valA, &valB);
-    //             TrataTroca(grafo, valA, valB);
-    //         }
-    //         numInstrucoes -= 1;
-    //     }
-    // }
     return 0;
 }

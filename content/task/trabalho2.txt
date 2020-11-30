@@ -16,7 +16,6 @@ Instruções
   5. Obs.1: O passo a passo da execução com as instâncias "G-6-6.txt" e "G-8-12.txt" devem estar no relatório, a execução com a instância "G-512-976.txt" deve estar em um arquivo separado.
   6. Obs.2: Os códigos devem ser submetidos através do runcode, existe um trabalho para submissão de cada código em específico.
 
-
 => Informação das instâncias
 ============================
 As instâncias fornecidas são compostas por:

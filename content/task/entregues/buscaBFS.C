@@ -38,9 +38,8 @@ sGrafo CriaGrafo(int numVertices) {
     grafo->lista = (listAdj) malloc(numVertices * sizeof(listAdj)); 
 
     // Inicializa cada lista de adjacência como vazia, fazendo cab receber um nó de aresta vazio.
-    listAdjNo noVazio = NovaListAdjNo(0);
-    for (int i = 1; i <= grafo->num; ++i) { 
-        grafo->lista[i].cab = noVazio;
+    for (int i = 0; i < grafo->num; ++i) { 
+        grafo->lista[i].cab = NovaListAdjNo(0);
     }
     return grafo; 
 }
@@ -58,44 +57,29 @@ void AdicionaAresta(sGrafo grafo, int src, int dest) {
     grafo->lista[dest].cab = novoNo;
 } 
 
-// Função para impressão de uma lista de adjacências
-void ImprimeGrafo(sGrafo grafo) { 
-  for (int i = 1; i <= grafo->num; ++i) { 
-    listAdjNo listaVertice = grafo->lista[i].cab; 
-    printf("Adjacencias do vertice [%d] ", i);
-
-    if (!listaVertice->dest) {
-        // Para vértices sem arestas
-        printf("-> vazio\n"); 
-    } else {
-        while (listaVertice->dest) { 
-            printf("-> %d", listaVertice->dest); 
-            listaVertice = listaVertice->prox; 
-        }
-        puts(""); 
-    }
-  } 
-}
-
 // Função de busca em largura
 void BuscaEmLargura(sGrafo grafo, int src) {
     int aDist[grafo->num];      // Array de distância
     int aPred[grafo->num];      // Array de predecessores
-    int qVert[grafo->num];      // Fila para guardar próxima investigação no grafo 
+    int qVert[2*grafo->num];    // Fila para guardar próxima investigação no grafo (tamanho dobrado para impedir acesso de memória inválido)
     char aCores[grafo->num];    // Array com a cor de cada vértice
     int iFila = 0, fFila = 1;   // Variáveis para guardar início e fim da fila
 
     // Prepara vetores para iterações de busca a seguir
-    for (int i = 0; i < grafo->num; i++) {
-        aCores[i] = 'b';
-        qVert[i] = 0;
-        aPred[i] = -1;
-        aDist[i] = -1;
+    for (int i = 0; i < 2*grafo->num; i++) {
+        if (i >= grafo->num) {
+            qVert[i] = 0;
+        } else {
+            aCores[i] = 'b';
+            qVert[i] = 0;
+            aPred[i] = -1;
+            aDist[i] = -1;
+        }
     }
 
     listAdjNo noAux = grafo->lista[src].cab;
 
-    int noAtual = src-1;
+    int noAtual = src;
     int idxAux;
 
     aCores[noAtual] = 'c';          // Marca nó inicial como conhecido (Cinza)
@@ -110,29 +94,32 @@ void BuscaEmLargura(sGrafo grafo, int src) {
 
         // Impressão da fila
         printf("Fila: [");
-        for (int i = iFila-1; i < fFila; i++) {
-            printf(" %d ", qVert[i]);
+        for (int i = iFila-1; i <= fFila; i++) {
+            if (qVert[i]) {
+                printf(" %d ", qVert[i]);
+            }
         }
         printf("]\n");
 
         while (noAux->dest) {
-            idxAux = noAux->dest-1;                     // Índice auxiliar
+            idxAux = noAux->dest;                     // Índice auxiliar
             if (aCores[idxAux] == 'b') {
                 aCores[idxAux] = 'c';                   // Marca nó como conhecido (Cinza)
-                aDist[idxAux] = aDist[noAtual-1] + 1;   // Define sua distância como dist. do nó atual + 1
+                aDist[idxAux] = aDist[noAtual] + 1;   // Define sua distância como dist. do nó atual + 1
                 aPred[idxAux] = noAtual;                // Define seu predecessor com nó atual
                 qVert[fFila] = noAux->dest;             // Enfila próximo vértice que deve ser visitado
                 fFila += 1;                             // Incrementa índice final da fila
             }
             
             // Impressão de cada iteração
-            printf("Para o nó %d-%d: ", noAtual, noAux->dest);
-            printf("Dist. = %d | Cor = %c | Pi = %d\n", aDist[idxAux], aCores[idxAux], aPred[idxAux]);
+            if (aDist[idxAux]) {
+                printf("Para o nó %d: ", noAux->dest);
+                printf("Dist. = %d | Cor = %c | Pi = %d\n", aDist[idxAux], aCores[idxAux], aPred[idxAux]);
+            }
 
             noAux = noAux->prox;                        // Atualiza posição da lista para a próxima
         }
-
-        aCores[noAtual-1] = 'p';                        // Verificação concluída para este nó, marca de Preto      
+        aCores[noAtual] = 'p';                        // Verificação concluída para este nó, marca de Preto      
     }
 }
 
@@ -151,7 +138,6 @@ int main() {
         AdicionaAresta(grafo, valA, valB);
     }
 
-    // ImprimeGrafo(grafo);
     BuscaEmLargura(grafo, vInicio);
     return 0;
 }
