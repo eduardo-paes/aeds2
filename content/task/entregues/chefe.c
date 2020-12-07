@@ -11,7 +11,6 @@ typedef struct AdjListNode *listAdjNo;
 // Struct para representar uma lista de adjacências
 struct AdjList { 
     int idade;
-    int key;
     struct AdjListNode *cab;    // Nó cabeça da lista
 }; 
 typedef struct AdjList *listAdj;
@@ -46,28 +45,6 @@ listAdjNo NovaListAdjNo(int dest) {
     novoNo->prox = NULL;
     return novoNo;
 } 
-  
-// Cria um grafo de tamanho (numVertices)
-sGrafo CriaGrafo(int numVertices) { 
-    sGrafo grafo = (sGrafo) malloc(sizeof(sGrafo)); 
-    grafo->num = numVertices; 
-
-    // Cria um array de listas de adjacência.
-    grafo->lista = (listAdj) calloc(24, numVertices * sizeof(listAdj)); 
-
-    // Inicializa cada lista de adjacência como vazia, fazendo cab receber um nó de aresta vazio.
-    for (int i = 1; i <= grafo->num; ++i) { 
-        grafo->lista[i].cab = NovaListAdjNo(0);
-    }
-    return grafo; 
-}
-
-// Adição de aresta no grafo
-void AdicionaAresta(sGrafo grafo, int src, int dest) { 
-    listAdjNo novoNo = NovaListAdjNo(dest);     // Cria novo nó de lista de adj. com destino igual a dest
-    novoNo->prox = grafo->lista[src].cab;       // Faz novo nó apontar para lista de adj. de src
-    grafo->lista[src].cab = novoNo;             // Faz cab de src apontar para o novo nó (agora cabeça da lista)
-} 
 
 // Cria um grafo de tamanho (numVertices)
 auxDFS CriaListaDFS() { 
@@ -81,6 +58,30 @@ auxDFS CriaListaDFS() {
     tmp->cor = 'b';
     return tmp; 
 }
+  
+// Cria um grafo de tamanho (numVertices)
+sGrafo CriaGrafo(int numVertices, auxDFS listaDFS[numVertices], int guardaIndice[numVertices]) { 
+    sGrafo grafo = (sGrafo) malloc(sizeof(sGrafo)); 
+    grafo->num = numVertices; 
+
+    // Cria um array de listas de adjacência.
+    grafo->lista = (listAdj) calloc(24, numVertices * sizeof(listAdj)); 
+
+    // Inicializa cada lista de adjacência como vazia, fazendo cab receber um nó de aresta vazio.
+    for (int i = 1; i <= grafo->num; ++i) { 
+        grafo->lista[i].cab = NovaListAdjNo(0);
+        listaDFS[i-1] = CriaListaDFS();
+        guardaIndice[i] = i;
+    }
+    return grafo; 
+}
+
+// Adição de aresta no grafo
+void AdicionaAresta(sGrafo grafo, int src, int dest) { 
+    listAdjNo novoNo = NovaListAdjNo(dest);     // Cria novo nó de lista de adj. com destino igual a dest
+    novoNo->prox = grafo->lista[src].cab;       // Faz novo nó apontar para lista de adj. de src
+    grafo->lista[src].cab = novoNo;             // Faz cab de src apontar para o novo nó (agora cabeça da lista)
+} 
 
 // Adiciona gerente como predecessor na lista de predecessores de empregado
 void AdicionaPredecessor(int num, auxDFS listaDFS[num], int empregado, int gerente ) {
@@ -120,7 +121,7 @@ int VisitaGerente(sGrafo grafo, auxDFS listaDFS[grafo->num], int gerente, int id
     predList aux = listaDFS[gerente]->pred;
     // A cada iteração, testa se a idade do gerente é menor do que a idade salva em idadeGer.
     // Caso seja a primeira iteração, idadeGer recebe idade do gerente.
-    while(aux->ger != -1) {
+    while(aux->ger > -1) {
         idadeGer = VisitaGerente(grafo, listaDFS, aux->ger-1, idadeGer);
         if (!idadeGer || idadeGer > grafo->lista[aux->ger].idade) {
             idadeGer = grafo->lista[aux->ger].idade;
@@ -136,22 +137,13 @@ int VisitaGerente(sGrafo grafo, auxDFS listaDFS[grafo->num], int gerente, int id
 void TrataPergunta(sGrafo grafo, auxDFS listaDFS[grafo->num], int emp) {
     int idadeGer = 0;
 
-    // Identifica qual a posição do empregado na lista do grafo tendo como base o índice fornecido pelo usuário
-    int id = 0;
-    for (int i = 1; i <= grafo->num; i++) {
-        if (!id && grafo->lista[i].key == emp){
-            id = i;
-        }
-    }
-
     // Após achar posição do empregado, declara vetor auxiliar contedo essa posição para iniciar a busca
-    emp = id;
     predList aux = listaDFS[emp-1]->pred;
 
     // Busca recursiva para identificar qual o gerente mais novo do empregado.
     // Todos os gerente do empregado serão visitados e a idade do mais novo erá salva
     // na variável idadeGer.
-    while (aux->ger != -1) {
+    while (aux->ger > -1) {
         idadeGer = VisitaGerente(grafo, listaDFS, aux->ger-1, idadeGer);
         if (!idadeGer || idadeGer > grafo->lista[aux->ger].idade) {
             idadeGer = grafo->lista[aux->ger].idade;
@@ -170,26 +162,18 @@ void TrataPergunta(sGrafo grafo, auxDFS listaDFS[grafo->num], int emp) {
 
 // Realiza a troca de posições entre src e dest.
 // Para tanto é trocada os valores de key e idade dos vértices.
-void TrataTroca(sGrafo grafo, int src, int dest) {
-    int idSRC = 0, idDEST = 0, idadeSRC, idadeDEST;
+void TrataTroca(sGrafo grafo, int src, int dest, int indices[grafo->num]) {
+    int posSRC = indices[src];
+    int posDEST = indices[dest];
 
-    // Procura empregados através do índice key
-    for (int i = 1; i <= grafo->num; i++) {
-        if (!idSRC && grafo->lista[i].key == src){
-            idSRC = i;
-            idadeSRC = grafo->lista[i].idade;
-        }
-        if (!idDEST && grafo->lista[i].key == dest){
-            idDEST = i;
-            idadeDEST = grafo->lista[i].idade;
-        }
-    }
+    int idadeSRC = grafo->lista[posSRC].idade;
+    int idadeDEST = grafo->lista[posDEST].idade;
 
-    // Após encontrada cada posição, realiza a troca
-    grafo->lista[idSRC].key = dest;
-    grafo->lista[idSRC].idade = idadeDEST;
-    grafo->lista[idDEST].key = src;
-    grafo->lista[idDEST].idade = idadeSRC;
+    grafo->lista[posSRC].idade = idadeDEST;
+    grafo->lista[posDEST].idade = idadeSRC;
+
+    indices[src] = posDEST;
+    indices[dest] = posSRC;
 }
 
 // Função de inicialização da busca em profundidade
@@ -204,50 +188,48 @@ void BuscaEmProfundidade(sGrafo grafo, auxDFS listaDFS[grafo->num]) {
 
 int main() { 
     int numEmpregados, numArestas, numInstrucoes, valA, valB;
-    scanf("%d %d %d", &numEmpregados, &numArestas, &numInstrucoes);
 
-    // Cria grafo com número de vértices igual a (numEmpregados).
-    sGrafo grafo = CriaGrafo(numEmpregados);
-    auxDFS listaDFS[numEmpregados];
+    while(scanf("%d %d %d", &numEmpregados, &numArestas, &numInstrucoes) != EOF) {
+        // Cria grafo com número de vértices igual a (numEmpregados).
+        auxDFS listaDFS[numEmpregados];
+        int guardaIndice[numEmpregados];
+        sGrafo grafo = CriaGrafo(numEmpregados, listaDFS, guardaIndice);
 
-    // Prepara vetores para iterações de busca a seguir (ListaDFS)
-    for (int i = 0; i < grafo->num; i++) {
-        listaDFS[i] = CriaListaDFS();
-    }
 
-    // Lê idade dos empregados e salva num vetor auxiliar
-    int idade;
-    for (int i = 1; i <= numEmpregados; i++) {
-        if (i == numEmpregados-1) {
-            scanf("%d", &idade);
-        } else {
-            scanf("%d ", &idade);
+        // Lê idade dos empregados e salva num vetor auxiliar
+        int idade;
+        for (int i = 1; i <= numEmpregados; i++) {
+            if (i == numEmpregados-1) {
+                scanf("%d", &idade);
+            } else {
+                scanf("%d ", &idade);
+            }
+            grafo->lista[i].idade = idade;
         }
-        grafo->lista[i].idade = idade;
-        grafo->lista[i].key = i;
-    }
 
-    // Lê cada aresta adicionando os pares na lista dos seus devidos vértices.
-    for (int i = 0; i < numArestas; i++) {
-        scanf("%d %d%*c", &valA, &valB);
-        AdicionaAresta(grafo, valA, valB);
-    }
-
-    // Realiza busca para preparação da ListaDFS
-    BuscaEmProfundidade(grafo, listaDFS);
-    
-    // Lê e trata cada instrução do usuário
-    char instrucao;
-    for (int i = 0; i < numInstrucoes; i++) {   // Mostrou-se mais eficiente em termos de [time / memory]
-        scanf(" %c", &instrucao);
-        if (instrucao == 'P') {
-            scanf(" %d", &valA);
-            TrataPergunta(grafo, listaDFS, valA);
+        // Lê cada aresta adicionando os pares na lista dos seus devidos vértices.
+        for (int i = 0; i < numArestas; i++) {
+            scanf("%d %d%*c", &valA, &valB);
+            AdicionaAresta(grafo, valA, valB);
         }
-        if (instrucao == 'T') {
-            scanf(" %d %d", &valA, &valB);
-            TrataTroca(grafo, valA, valB);
+
+        // Realiza busca para preparação da ListaDFS
+        BuscaEmProfundidade(grafo, listaDFS);
+        
+        // Lê e trata cada instrução do usuário
+        char instrucao;
+        for (int i = 0; i < numInstrucoes; i++) {   // Mostrou-se mais eficiente em termos de [time / memory]
+            scanf(" %c", &instrucao);
+            if (instrucao == 'P') {
+                scanf(" %d", &valA);
+                TrataPergunta(grafo, listaDFS, guardaIndice[valA]);
+            }
+            if (instrucao == 'T') {
+                scanf(" %d %d", &valA, &valB);
+                TrataTroca(grafo, valA, valB, guardaIndice);
+            }
         }
     }
+
     return 0;
 }
