@@ -1,0 +1,31 @@
+Pseudo-Códigos (Algorítmo de Dijkstra)
+=======================================
+
+INITIALIZE-SINGLE-SOURCE(G, s)
+  for cada vertice v ∈ V do
+    dist[v] = ∞
+    pi[v] = NIL
+  endfor
+  dist[s] = 0
+
+-------------
+
+RELAX(u, v, w)
+  if dist[v] > dist[u] + w(u, v) then
+    dist[v] = dist[u] + w(u, v)
+    pi[v] = u
+  endif
+
+-------------
+
+DIJKSTRA (G, w, s)
+  INITIALIZE-SINGLE-SOURCE (G, s)
+  S ← ∅  // Conjunto dos vértices cujo menor caminho desde a origem já foram determinados inicia vazio
+  Q ← V  // Conjunto com todos os vértices do grafo (lista de prioridades)
+
+  while Q != ∅ do
+    u ← EXTRACT−MIN(Q)  // Extrai vértice com menor peso
+    S ← S ∪ {u}         // {u} é inserido no conjunto dos nós visitados
+
+    for cada vertice v ∈ Adj [u] do
+      RELAX(u,v,w)      // Relaxa cada nó adjacente ao vértice {u}
