@@ -7,6 +7,10 @@
 // requisitos dos casos de teste propostos.
 int valMaximo = 10000;
 
+// Variável HeapTam tem a finalidade de marcar o 
+// tamanho da fila de prioridade heap.
+int heapTam = 0;
+
 #pragma region Definição de Structs
 // Struct para representar um nó da lista de adjacências
 struct ListAdjNo { 
@@ -119,54 +123,56 @@ void TrocaPosicao(heapList vet[], int valA, int valB) {
   vet[valB] = tmp;
 }
 
-int RetornaFilhoDireita(heapList vet[], int indice, int num) {
+int RetornaFilhoDireita(int indice, int num) {
   if((((2*indice)+1) < num) && (indice >= 1))
     return (2*indice) + 1;
   return -1;
 }
 
-int RetornaFilhoEsquerda(heapList vet[], int indice, int num) {
+int RetornaFilhoEsquerda(int indice, int num) {
   if(((2*indice) < num) && (indice >= 1))
     return 2*indice;
   return -1;
 }
 
-int RetornaPai(heapList vet[], int indice, int num) {
+int RetornaPai(int indice, int num) {
   if ((indice > 1) && (indice <= num)) {
     return indice/2;
   }
   return -1;
 }
 
-void HeapfyMinimo(heapList vet[], int indice, int num, int heapTam) {
-  int fe = RetornaFilhoEsquerda(vet, indice, num);   // Índice do Filho da Esquerda
-  int fd = RetornaFilhoDireita(vet, indice, num);    // Índice do Filho da Direita
+void HeapfyMinimo(heapList vet[], int indice, int num) {
+  int fe = RetornaFilhoEsquerda(indice, num);   // Índice do Filho da Esquerda
+  int fd = RetornaFilhoDireita(indice, num);    // Índice do Filho da Direita
 
-  int menorVertice = indice;
+  int minVertice = indice;
 
-  if ((fe <= heapTam) && (fe > 0)) {
-    if (vet[fe]->peso < vet[menorVertice]->peso) {
-      menorVertice = fe;
+  // Testa filho da esquerda
+  if (fe <= heapTam && fe > 0) {
+    if (vet[fe]->peso < vet[minVertice]->peso) {
+      minVertice = fe;
     }
   }
 
-  if ((fd <= heapTam && (fd > 0))) {
-    if (vet[fd]->peso < vet[menorVertice]->peso) {
-      menorVertice = fd;
+  // Testa filho da direita
+  if (fd <= heapTam && fd > 0) {
+    if (vet[fd]->peso < vet[minVertice]->peso) {
+      minVertice = fd;
     }
   }
 
-  if (menorVertice != indice) {
-    TrocaPosicao(vet, indice, menorVertice);
-    HeapfyMinimo(vet, menorVertice, num, heapTam);
+  if (minVertice != indice) {
+    TrocaPosicao(vet, indice, minVertice);
+    HeapfyMinimo(vet, minVertice, num);
   }
 }
 
-heapList ExtraiMenor(heapList vet[], int num, int heapTam) {
+heapList ExtraiMenor(heapList vet[], int num) {
   heapList menor = vet[1];
   vet[1] = vet[heapTam];
   heapTam--;
-  HeapfyMinimo(vet, 1, num, heapTam);
+  HeapfyMinimo(vet, 1, num);
   return menor;
 }
 
@@ -174,23 +180,24 @@ void DiminuiPeso(heapList vet[], int chave, int peso, int num, int indice) {
   vet[indice]->peso = peso;
   vet[indice]->chave = chave;
 
-  while((indice > 1) && (vet[RetornaPai(vet, indice, num)]->peso > vet[indice]->peso)) {
-    TrocaPosicao(vet, indice, RetornaPai(vet, indice, num));
-    indice = RetornaPai(vet, indice, num);
+  while((indice > 1) && (vet[RetornaPai(indice, num)]->peso > vet[indice]->peso)) {
+    TrocaPosicao(vet, indice, RetornaPai(indice, num));
+    indice = RetornaPai(indice, num);
   }
 }
 
-void AumentaPeso(heapList vet[], int indice, int peso, int num, int heapTam) {
-  vet[indice]->peso = peso;
-  HeapfyMinimo(vet, indice, num, heapTam);
-}
-
-int InsereFila(heapList vet[], int chave, int peso, int num, int heapTam) {
+void InsereFila(heapList vet[], int chave, int peso, int num) {
   heapTam++;
   vet[heapTam] = AlocaListaHeap();
   vet[heapTam]->peso = valMaximo;
   DiminuiPeso(vet, chave, peso, num, heapTam);
-  return heapTam;
+}
+
+void ImprimeFila(heapList vet[]) {
+  for(int i = 1; i <= heapTam; i++) {
+    printf("%d ",vet[i]->chave);
+  }
+  printf("\n");
 }
 #pragma endregion
 
@@ -198,9 +205,10 @@ int InsereFila(heapList vet[], int chave, int peso, int num, int heapTam) {
 // Inicializa lista auxiliar fazendo todas as distâncias receberem 
 // valor máximo e predecessor recebe valor 0.
 // Para o nó de início, distância igual a 0.
-void Inicializador(graph grafo, int src, auxList listaAuxiliar[], int verificador[]) {
+void Inicializador(graph grafo, int src, auxList listaAuxiliar[], int nosInseridos[], int nosVisitados[]) {
   for (int i = 1; i <= grafo->num; i++) {
-    verificador[i] = 0;
+    nosInseridos[i] = 0;
+    nosVisitados[i] = 0;
     listaAuxiliar[i] = CriaListaAuxiliar();
   }
   listaAuxiliar[src]->dist = 0;
@@ -219,7 +227,9 @@ void Relaxamento(auxList listaAuxiliar[], int src, int dest, int peso) {
 
 void AlgoritmoDijkstra (graph grafo, int src) {
   int numVertices = grafo->num, nosVisitados[numVertices];
-  int posFila = 0, heapTam = 0;
+
+  // Inicializa tamanho da fila de prioridade como 0
+  heapTam = 0;
 
   // Lista auxiliar contendo distância e predecessor de cada vértice
   auxList listaAuxiliar[numVertices];
@@ -228,16 +238,13 @@ void AlgoritmoDijkstra (graph grafo, int src) {
   heapList listaPrioridade[numVertices];
 
   // Lista para verificação se o nó já foi inserido na lista de prioridade
-  int verificador[numVertices];
+  int nosInseridos[numVertices];
 
   // Função de inicializção.
-  Inicializador(grafo, src, listaAuxiliar, verificador);
+  Inicializador(grafo, src, listaAuxiliar, nosInseridos, nosVisitados);
 
   // Inicializa lista de prioridades inserindo vértice inicial na lista.
-  heapTam = InsereFila(listaPrioridade, src, 0, numVertices, heapTam);
-
-  // Marca como nó já inserido na lista de prioridade a fim de evitar duplicidade
-  verificador[src] = 1;
+  InsereFila(listaPrioridade, src, 0, numVertices);
 
   // Variável auxiliar para percorrer lista de adjacências do vértice.
   listAdjNo noAux = grafo->lista[src].cab;
@@ -247,41 +254,54 @@ void AlgoritmoDijkstra (graph grafo, int src) {
 
   while (heapTam) {
     // Extrai menor valor da fila de prioridade.
-    heapList posAtual = ExtraiMenor(listaPrioridade, numVertices, heapTam);
-    heapTam -= 1;
+    heapList posAtual = ExtraiMenor(listaPrioridade, numVertices);
+
+    printf("Menor: %d | Peso: %d\n", posAtual->chave, posAtual->peso);
 
     // Posição do nó recém extraído da lista de prioridade
     noAtual = posAtual->chave;
 
     // Marca vértice como visitado inserindo na lista de nós visitados.
-    nosVisitados[posFila] = noAtual;
-    posFila += 1;
+    nosVisitados[noAtual] = 1;
+
+    // Marca como nó já inserido na lista de prioridade a fim de evitar duplicidade
+    nosInseridos[noAtual] = 1;
 
     // Atualizar variável auxiliar para a lista de adjacências do nó recém extraído da lista de prioridade.
     noAux = grafo->lista[noAtual].cab;
 
-    printf("%d\n", noAtual);
-
     while (noAux->dest) {
+      // Variável auxiliar para guardar nó de destino do nó atual.
       idxAux = noAux->dest;
+
+      // Variável para armazenar peso anterior do nó e verificar posteriormente se houve mudança.
+      int pesoAnterior = listaAuxiliar[idxAux]->dist;
 
       // Realiza o relaxamento das arestas do nó atual
       Relaxamento(listaAuxiliar, noAtual, idxAux, noAux->peso);
 
-      if (verificador[idxAux]) {
+      // Caso nó já tenha sido inserido na lista de prioridade e após o relaxamento seu peso é menor,
+      // diminui seu peso na fila reordenando posições conforme novo peso.
+      if (nosInseridos[idxAux] && (pesoAnterior > listaAuxiliar[idxAux]->dist)) {
         DiminuiPeso(listaPrioridade, idxAux, listaAuxiliar[idxAux]->dist, numVertices, heapTam);
-      } else {
-        heapTam = InsereFila(listaPrioridade, idxAux, listaAuxiliar[idxAux]->dist, numVertices, heapTam);
-        verificador[idxAux] = 1;
       }
 
-      // Atualiza posição da lista para a próxima
+      // Caso nó ainda não tenha sido inserido na lista de prioridade,
+      // insere na fila reordenando posições conforme peso.
+      // Marca nó entre os nós já inseridos.
+      if (!nosInseridos[idxAux]) {
+        InsereFila(listaPrioridade, idxAux, listaAuxiliar[idxAux]->dist, numVertices);
+        nosInseridos[idxAux] = 1;
+      }
+
+      // Atualiza posição da lista de adjacências para o próximo nó.
       noAux = noAux->prox;
     }
   }
 
+  puts("");
   for (int i = 1; i <= numVertices; i++) {
-    printf("Nó: %d => Dist.: %d | Pred.: %d\n", i, listaAuxiliar[i]->dist, listaAuxiliar[i]->pred);
+    printf("No: %d => Dist.: %d | Pred.: %d\n", i, listaAuxiliar[i]->dist, listaAuxiliar[i]->pred);
   }
 }
 #pragma endregion
@@ -295,7 +315,7 @@ int main () {
   // igual a (numVertices).
   graph grafo = CriaGrafo(numVertices);
 
-  // Lê cada aresta adicionando os pares 
+  // Lê cada aresta e seu respectivo peso adicionando os pares 
   // na lista dos seus devidos vértices.
   for (int i = 0; i < numArestas; i++) {
     scanf("%d %d %d", &valA, &valB, &peso);
