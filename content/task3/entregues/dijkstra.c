@@ -37,14 +37,6 @@ struct Graph {
 }; 
 typedef struct Graph *graph;
 
-// Struct para representar um nó da árvore de conjuntos.
-// Cada nó possui seu dado e um ponteiro para o representante.
-struct Set {
-  int indice;                   // Índice para identificar posição do conjunto disjunto
-  struct Set *rep;              // Ponteiro para o representante do conjunto
-};
-typedef struct Set *set;
-
 // Lista auxiliar contendo valores de distância e predecessor a serem utilizados 
 // pelo algorítmo de Dijkstra na busca por um caminho mínimo da origem até
 // os demais nós do grafo.

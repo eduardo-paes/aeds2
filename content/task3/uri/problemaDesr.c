@@ -37,14 +37,6 @@ struct Graph {
 }; 
 typedef struct Graph *graph;
 
-// Struct para representar um nó da árvore de conjuntos.
-// Cada nó possui seu dado e um ponteiro para o representante.
-struct Set {
-  int indice;                   // Índice para identificar posição do conjunto disjunto
-  struct Set *rep;              // Ponteiro para o representante do conjunto
-};
-typedef struct Set *set;
-
 // Lista auxiliar contendo valores de distância e predecessor a serem utilizados 
 // pelo algorítmo de Dijkstra na busca por um caminho mínimo da origem até
 // os demais nós do grafo.
@@ -62,15 +54,25 @@ struct HeapList {
 };
 typedef struct HeapList *heapList;
 
+// Estrutura para alocação das coordenadas das ruas.
+struct Coordenadas {
+  int x0;
+  int y0;
+  int x1;
+  int y1;
+};
+typedef struct Coordenadas *coordenadas;
+
 #pragma endregion
 
 #pragma region Alocações do Grafo/Arestas
 // Aloca um nó para compor uma lista de adjacências
 listAdjNo NovoNoAdjacente(int dest, int peso) { 
-  listAdjNo novoNo = (listAdjNo)calloc(16, sizeof(listAdjNo)); 
+  listAdjNo novoNo = (listAdjNo)calloc(20, sizeof(listAdjNo)); 
+
   novoNo->dest = dest; 
   novoNo->peso = peso; 
-  novoNo->prox = NULL; 
+  novoNo->prox = NULL;
   return novoNo;
 } 
 
@@ -97,9 +99,9 @@ void AdicionaAresta(graph grafo, int src, int dest, int peso) {
   // Um novo nó é adicionado à lista de adjacências de src.
   // O nó é adicionado no início da lista.
   listAdjNo novoNo = NovoNoAdjacente(dest, peso);
-  novoNo->prox = grafo->lista[src].cab; 
+  novoNo->prox = grafo->lista[src].cab;
   grafo->lista[src].cab = novoNo; 
-} 
+}
 
 // Cria uma posição vazia para a lista auxiliar
 auxList CriaListaAuxiliar() { 
@@ -230,7 +232,7 @@ void Relaxamento(auxList listaAuxiliar[], int src, int dest, int peso) {
 // Função principal do algorítmo de Dijkstra. Recebendo como parâmetros o grafo e o vértice inicial da busca,
 // este algorítmo retorna o caminho mínimo do vértice informado até todos os vértices contidos no grafo.
 // Tal algorítmo não funciona para distâncias negativas entre as arestas.
-void AlgoritmoDijkstra (graph grafo, int src) {
+void AlgoritmoDijkstra (graph grafo, int src, int dest) {
   int numVertices = grafo->num, nosVisitados[numVertices];
 
   // Inicializa tamanho da fila de prioridade como 0
@@ -260,8 +262,6 @@ void AlgoritmoDijkstra (graph grafo, int src) {
   while (heapTam) {
     // Extrai menor valor da fila de prioridade.
     heapList posAtual = ExtraiMenor(listaPrioridade, numVertices);
-
-    printf("Menor: %d | Peso: %d\n", posAtual->chave, posAtual->peso);
 
     // Posição do nó recém extraído da lista de prioridade
     noAtual = posAtual->chave;
@@ -304,30 +304,82 @@ void AlgoritmoDijkstra (graph grafo, int src) {
     }
   }
 
-  puts("");
-  for (int i = 1; i <= numVertices; i++) {
-    printf("No: %d => Dist.: %d | Pred.: %d\n", i, listaAuxiliar[i]->dist, listaAuxiliar[i]->pred);
+  if (listaAuxiliar[dest]->dist == valMaximo) {
+    printf("Impossible\n");
+  } else {
+    printf("%d\n", listaAuxiliar[dest]->dist);
+  }
+}
+#pragma endregion
+
+#pragma region Algorítmo próprio Desrugenstein
+void AjustaAresta(graph grafo, int num, int pos[num][num], int x, int y, coordenadas coor) {
+  int src = pos[x][y];
+  int dest = 0;
+
+  // printf("S: %d -> (%d,%d)\n", pos[x][y], x, y);
+  // printf("C: %d %d %d %d\n\n", coor->x0, coor->y0, coor->x1, coor->y1);
+
+  // Norte (y max. = n)
+  if (coor->x0 && (y + 1 < grafo->num)) {
+    dest = pos[x][y+1];
+    AdicionaAresta(grafo, src, dest, 1);
+  }
+
+  // Sul (y min. = 0)
+  if (coor->y0 && (y - 1 > -1)) {
+    dest = pos[x][y-1];
+    AdicionaAresta(grafo, src, dest, 1);
+  }
+
+  // Oeste (x min. = 0)
+  if (coor->x1 && (x - 1 > -1)) {
+    dest = pos[x-1][y];
+    AdicionaAresta(grafo, src, dest, 1);
+  }
+  
+  // Leste (x max. = n)
+  if (coor->y1 && (x + 1 < grafo->num)) {
+    dest = pos[x+1][y];
+    AdicionaAresta(grafo, src, dest, 1);
   }
 }
 #pragma endregion
 
 #pragma region Função Principal
 int main () {
-  int numVertices, numArestas, vInicio, valA, valB, peso;
-  scanf("%d %d %d%*c", &numVertices, &numArestas, &vInicio);
+  int numLinhas, numQuestoes;
+  int x1, y1, x2, y2;
+  coordenadas coor = (coordenadas)calloc(16, sizeof(coordenadas));
 
-  // Cria grafo com número de vértices 
-  // igual a (numVertices).
-  graph grafo = CriaGrafo(numVertices);
+  do {
+    scanf("%d", &numLinhas);
+    int posicoes[numLinhas][numLinhas], pos = 0;
+    graph grafo = CriaGrafo(numLinhas*numLinhas);
 
-  // Lê cada aresta e seu respectivo peso adicionando os pares 
-  // na lista dos seus devidos vértices.
-  for (int i = 0; i < numArestas; i++) {
-    scanf("%d %d %d", &valA, &valB, &peso);
-    AdicionaAresta(grafo, valA, valB, peso); 
-  }
+    for (int i = numLinhas-1; i >= 0; i--) {
+      for (int j = 0; j < numLinhas; j++) {
+        posicoes[j][i] = ++pos;
+      }
+    }
 
-  AlgoritmoDijkstra(grafo, vInicio);
+    for (int i = numLinhas-1; i >= 0; i--) { // Indo de N-1 até 0;
+      for (int j = 0; j < numLinhas; j++) {
+        scanf("%d %d %d %d", &coor->x0, &coor->y0, &coor->x1, &coor->y1);
+        AjustaAresta(grafo, numLinhas, posicoes, j, i, coor);
+      }
+    }
+
+    scanf("%d", &numQuestoes);
+    int vOrigem, vDestino;
+    for (int i = 0; i < numQuestoes; i++) {
+      scanf("%d %d %d %d", &coor->x0, &coor->y0, &coor->x1, &coor->y1);
+      vOrigem = posicoes[coor->x0][coor->y0];
+      vDestino = posicoes[coor->x1][coor->y1];
+      AlgoritmoDijkstra(grafo, vOrigem, vDestino);
+    }
+    scanf("%d", &numLinhas);
+  } while (numLinhas);
   return 0;
 }
 #pragma endregion
